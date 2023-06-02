@@ -6,37 +6,10 @@ using namespace sf;
 using namespace std;
 
 const double PI = 3.141592653589793;
-const int LENGTH = 18;
 
-void drawline(RenderWindow *window, pair<int, int> p0, pair<int, int> p1) {
-    Vertex line[] =
-            {
-                    Vertex(Vector2f(p0.first, p0.second), Color::Black),
-                    Vertex(Vector2f(p1.first, p1.second), Color::Black)
-            };
-    window->draw(line, 2, Lines);
-}
-
-void drawCube(RenderWindow *window, pair<int, int> vertices[], int n) {
-    for (int i = 0; i < n - 1; i++)
-        drawline(window, vertices[i], vertices[i + 1]);
-}
-
-
-int main() {
-    int widthWindow = 600;
-    int heightWindow = 600;
-    RenderWindow window(VideoMode(widthWindow, heightWindow), "Lab 6");
-
-    int edgeCubeLength = 0;
-    int angle = 0;
-    do {
-        cout << "Cube edge length: ";
-        cin >> edgeCubeLength;
-    } while (edgeCubeLength <= 0);
-
-    cout << "Angle: ";
-    cin >> angle;
+VertexArray drawCube(int widthWindow = 600, int heightWindow = 600) {
+    int edgeCubeLength = 100;
+    int angle = 60;
     int angle90 = angle + 90;
     int angle180 = angle + 180;
     int angle270 = angle + 270;
@@ -50,27 +23,91 @@ int main() {
     int x3 = (int) ((edgeCubeLength * sin(angle270 * PI / 180)) + widthWindow / 2);
     int y3 = (int) ((edgeCubeLength * cos(angle270 * PI / 180)) + heightWindow / 2);
 
-    pair<int, int> cube[LENGTH];
-    cube[0] = make_pair(x0 - edgeCubeLength / 2, y0);
-    cube[1] = make_pair(x1 - edgeCubeLength / 2, y1);
-    cube[2] = make_pair(x1 - edgeCubeLength / 2, y1);
-    cube[3] = make_pair(x2 - edgeCubeLength / 2, y2);
-    cube[4] = make_pair(x2 - edgeCubeLength / 2, y2);
-    cube[5] = make_pair(x3 - edgeCubeLength / 2, y3);
-    cube[6] = make_pair(x0 - edgeCubeLength / 2, y0);
+    VertexArray lines(Lines, 24);
+    lines[0] = Vector2f(x0 - edgeCubeLength / 2, y0);
+    lines[1] = Vector2f(x1 - edgeCubeLength / 2, y1);
+    lines[2] = Vector2f(x1 - edgeCubeLength / 2, y1);
+    lines[3] = Vector2f(x2 - edgeCubeLength / 2, y2);
+    lines[4] = Vector2f(x2 - edgeCubeLength / 2, y2);
+    lines[5] = Vector2f(x3 - edgeCubeLength / 2, y3);
+    lines[6] = Vector2f(x3 - edgeCubeLength / 2, y3);
+    lines[7] = Vector2f(x0 - edgeCubeLength / 2, y0);
 
-    cube[7] = make_pair(x0 + edgeCubeLength / 2, y0);
-    cube[8] = make_pair(x1 + edgeCubeLength / 2, y1);
-    cube[9] = make_pair(x2 + edgeCubeLength / 2, y2);
-    cube[10] = make_pair(x3 + edgeCubeLength / 2, y3);
-    cube[11] = make_pair(x0 + edgeCubeLength / 2, y0);
+    lines[8] = Vector2f(x0 + edgeCubeLength / 2, y0);
+    lines[9] = Vector2f(x1 + edgeCubeLength / 2, y1);
+    lines[10] = Vector2f(x1 + edgeCubeLength / 2, y1);
+    lines[11] = Vector2f(x2 + edgeCubeLength / 2, y2);
+    lines[12] = Vector2f(x2 + edgeCubeLength / 2, y2);
+    lines[13] = Vector2f(x3 + edgeCubeLength / 2, y3);
+    lines[14] = Vector2f(x3 + edgeCubeLength / 2, y3);
+    lines[15] = Vector2f(x0 + edgeCubeLength / 2, y0);
 
-    cube[12] = make_pair(x3 + edgeCubeLength / 2, y3);
-    cube[13] = make_pair(x3 - edgeCubeLength / 2, y3);
-    cube[14] = make_pair(x2 - edgeCubeLength / 2, y2);
-    cube[15] = make_pair(x2 + edgeCubeLength / 2, y2);
-    cube[16] = make_pair(x1 + edgeCubeLength / 2, y1);
-    cube[17] = make_pair(x1 - edgeCubeLength / 2, y1);
+    lines[16] = Vector2f(x0 - edgeCubeLength / 2, y0);
+    lines[17] = Vector2f(x0 + edgeCubeLength / 2, y0);
+    lines[18] = Vector2f(x1 - edgeCubeLength / 2, y1);
+    lines[19] = Vector2f(x1 + edgeCubeLength / 2, y1);
+    lines[20] = Vector2f(x2 - edgeCubeLength / 2, y2);
+    lines[21] = Vector2f(x2 + edgeCubeLength / 2, y2);
+    lines[22] = Vector2f(x3 - edgeCubeLength / 2, y3);
+    lines[23] = Vector2f(x3 + edgeCubeLength / 2, y3);
+
+    return lines;
+}
+
+
+VertexArray drawPyramid(int widthWindow = 600) {
+    int baseLength = 100;
+    int d_x = 60, d_y = 60;
+    int sqX1 = widthWindow / 2, sqY1 = widthWindow / 2;
+    int sqX2 = sqX1 - d_x, sqY2 = sqY1 - d_y;
+
+    VertexArray lines(Lines, 16);
+    lines[0] = Vector2f(sqX1, sqY1);
+    lines[1] = Vector2f(sqX1 + baseLength, sqY1);
+    lines[2] = Vector2f(sqX2, sqY2);
+    lines[3] = Vector2f(sqX2 + baseLength, sqY2);
+
+    lines[4] = Vector2f(sqX1, sqY1);
+    lines[5] = Vector2f(sqX2, sqY2);
+    lines[6] = Vector2f(sqX1 + baseLength, sqY1);
+    lines[7] = Vector2f(sqX2 + baseLength, sqY2);
+
+    int centerX = (int) (sqX1 + d_x / (2 * sqrt(2)));
+    int centerY = sqY1 + d_y / 2;
+    int topX = centerX, topY = centerY - baseLength * 2;
+
+    lines[8] = Vector2f(sqX1, sqY1);
+    lines[9] = Vector2f(topX, topY);
+    lines[10] = Vector2f(sqX1 + baseLength, sqY1);
+    lines[11] = Vector2f(topX, topY);
+    lines[12] = Vector2f(sqX2, sqY2);
+    lines[13] = Vector2f(topX, topY);
+    lines[14] = Vector2f(sqX2 + baseLength, sqY2);
+    lines[15] = Vector2f(topX, topY);
+
+    return lines;
+}
+
+
+int main() {
+    int widthWindow = 600;
+    int heightWindow = 600;
+    RenderWindow window(VideoMode(widthWindow, heightWindow), "Lab 7");
+
+    int choose = 0;
+    do {
+        cout << "Choose the figure:" << endl;
+        cout << "1 - Cube" << endl;
+        cout << "2 - Pyramid" << endl;
+        cin >> choose;
+    } while (choose != 1 && choose != 2 && choose != 3);
+
+    VertexArray lines;
+    if (choose == 1) {
+        lines = drawCube();
+    } else if (choose == 2) {
+        lines = drawPyramid();
+    }
 
     while (window.isOpen()) {
         Event event{};
@@ -78,11 +115,10 @@ int main() {
             if (event.type == Event::Closed)
                 window.close();
         }
-        window.clear(Color::White);
-        drawCube(&window, cube, LENGTH);
+        window.clear();
+        window.draw(lines);
         window.display();
     }
 
     return 0;
-}
-
+} 
