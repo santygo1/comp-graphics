@@ -1,117 +1,148 @@
-#define _USE_MATH_DEFINES
-
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <cmath>
-const int windowWidth = 800;
-const int windowHeight = 600;
+#include <utility>
+#include <vector>
 
-bool CheckPoint(float x, float y) {
-    if (x >= -windowWidth / 2 && x <= windowWidth / 2 &&
-        y >= -windowHeight / 2 && y <= windowHeight / 2)
-        return true;
-    else
-        return false;
-}
-using namespace sf;
 using namespace std;
+using namespace sf;
+
+void drawline(RenderWindow *window, pair<int, int> p0, pair<int, int> p1) {
+    Vertex line[] =
+            {
+                    Vertex(Vector2f(p0.first, p0.second)),
+                    Vertex(Vector2f(p1.first, p1.second))
+            };
+    window->draw(line, 2, Lines);
+}
+
+void drawPolygon(RenderWindow *window, pair<int, int> vertices[], int n) {
+    for (int i = 0; i < n - 1; i++)
+        drawline(window, vertices[i], vertices[i + 1]);
+    drawline(window, vertices[0], vertices[n - 1]);
+}
+
+int dot(pair<int, int> p0, pair<int, int> p1) {
+    return p0.first * p1.first + p0.second * p1.second;
+}
+
+float max(vector<float> t) {
+    float maximum = INT_MIN;
+    for (int i = 0; i < t.size(); i++)
+        if (t[i] > maximum)
+            maximum = t[i];
+    return maximum;
+}
+
+float min(vector<float> t) {
+    float minimum = INT_MAX;
+    for (int i = 0; i < t.size(); i++)
+        if (t[i] < minimum)
+            minimum = t[i];
+    return minimum;
+}
+
+pair<int, int> *CyrusBeck(pair<int, int> vertices[], pair<int, int> line[], int n) {
+    pair<int, int> *newPair = new pair<int, int>[2];
+    pair<int, int> *normal = new pair<int, int>[n];
+    for (int i = 0; i < n; i++) {
+        normal[i].second = vertices[(i + 1) % n].first - vertices[i].first;
+        normal[i].first = vertices[i].second - vertices[(i + 1) % n].second;
+    }
+
+    pair<int, int> P1_P0 = make_pair(line[1].first - line[0].first, line[1].second - line[0].second);
+
+    pair<int, int> *P0_PEi = new pair<int, int>[n];
+
+    for (int i = 0; i < n; i++) {
+        P0_PEi[i].first = vertices[i].first - line[0].first;
+        P0_PEi[i].second = vertices[i].second - line[0].second;
+    }
+
+    int *numerator = new int[n], *denominator = new int[n];
+
+    for (int i = 0; i < n; i++) {
+        numerator[i] = dot(normal[i], P0_PEi[i]);
+        denominator[i] = dot(normal[i], P1_P0);
+    }
+
+    float *t = new float[n];
+
+    vector<float> tE, tL;
+
+    for (int i = 0; i < n; i++) {
+
+        t[i] = (float) (numerator[i]) / (float) (denominator[i]);
+
+        if (denominator[i] > 0)
+            tE.push_back(t[i]);
+        else
+            tL.push_back(t[i]);
+    }
+
+    float temp[2];
+
+    tE.push_back(0.f);
+    temp[0] = max(tE);
+
+    tL.push_back(1.f);
+    temp[1] = min(tL);
+
+    if (temp[0] > temp[1]) {
+        newPair[0] = make_pair(-1, -1);
+        newPair[1] = make_pair(-1, -1);
+        return newPair;
+    }
+
+    newPair[0].first = (float) line[0].first + (float) P1_P0.first * (float) temp[0];
+    newPair[0].second = (float) line[0].second + (float) P1_P0.second * (float) temp[0];
+    newPair[1].first = (float) line[0].first + (float) P1_P0.first * (float) temp[1];
+    newPair[1].second = (float) line[0].second + (float) P1_P0.second * (float) temp[1];
+    cout << '(' << newPair[0].first << ", " << newPair[0].second << ") (" << newPair[1].first << ", "
+         << newPair[1].second << ")";
+    return newPair;
+}
 
 int main() {
 
-    RenderWindow window(VideoMode(windowWidth, windowHeight), "lab 1");
-
-    float x1, y1, x2, y2;
-
-    cout << "X Y (point 1): ";
-    cin >> x1 >> y1;
-
-    while (!CheckPoint( x1, y1)) {
-        cout << "X must be in [-" << windowWidth / 2 << ", " << windowWidth / 2 << "]" << endl;
-        cout << "And Y must be in [0, " << windowHeight << "]" << endl;
-        cout << "X Y (point 1): ";
-        cin >> x1 >> y1;
-    }
-    x1 += windowWidth / 2;
-    y1 = 0 - y1 + windowWidth / 2;
-
-    cout << "X Y (point 2): ";
-    cin >> x2 >> y2;
-
-    while (!CheckPoint( x2, y2)) {
-        cout << "X must be in [0, " << windowWidth << "]" << endl;
-        cout << "And Y must be in [0, " << windowHeight << "]" << endl;
-        cout << "X Y (point 2): ";
-        cin >> x2 >> y2;
-    }
-    x2 += windowWidth / 2;
-    y2 = 0 - y2 + windowWidth / 2;
-
-    float pointX, pointY;
-
-    cout
-            << "X Y (point relative to which the straight line will be rotated): ";
-    cin >> pointX >> pointY;
-
-    while (!CheckPoint( pointX, pointY)) {
-        cout << "X must be [0, " << windowWidth << "]" << endl;
-        cout << "And Y must be [0, " << windowHeight << "]" << endl;
-        cout << "X Y (point relative to which the straight line will be rotated): ";
-        cin >> pointX >> pointY;
-    }
-
-    pointX += windowWidth / 2;
-    pointY = 0 - pointY + windowWidth / 2;
-
-    float angle;
-    cout << "Angle: ";
-    cin >> angle;
-
-    bool flag = true;
-    while (flag) {
-        if (0 < angle && angle <= 360) {
-            flag = false;
-        } else {
-            cout << "Angle must be (0, 360]\n";
-            cout << "Angle: ";
-            cin >> angle;
-        }
-    }
-    angle = (angle * M_PI) / 180;
-
-    Vertex line[] =
+    RenderWindow window(VideoMode(500, 500), "Lab 2");
+    pair<int, int> vertices[] =
             {
-                    Vertex(Vector2f(x1, y1)),
-                    Vertex(Vector2f(x2, y2))
+                    make_pair(200, 50),
+                    make_pair(250, 100),
+                    make_pair(200, 150),
+                    make_pair(100, 150),
+                    make_pair(50, 100),
+                    make_pair(100, 50)
             };
 
-    Vertex point[] =
-            {
-                    Vertex(Vector2f(pointX, pointY), Color::Red)
-            };
+    int n = sizeof(vertices) / sizeof(vertices[0]);
+    pair<int, int> line[] = {make_pair(10, 10), make_pair(300, 200)};
+    pair<int, int> *temp1 = CyrusBeck(vertices, line, n);
+    pair<int, int> temp2[2];
+    temp2[0] = line[0];
+    temp2[1] = line[1];
 
-
-    // new line
-    float newX1, newX2, newY1, newY2;
-    newX1 = x1 + (pointX - x1) * cos(angle) - (pointY - y1) * sin(angle);
-    newY1 = y1 + (pointX - x1) * sin(angle) - (pointY - y1) * cos(angle);
-    newX2 = x2 + (pointX - x2) * cos(angle) - (pointY - y2) * sin(angle);
-    newY2 = y2 + (pointX - x2) * sin(angle) - (pointY - y2) * cos(angle);
-    Vertex newLine[] =
-            {
-                    Vertex(Vector2f(newX1, newY1), Color::Blue),
-                    Vertex(Vector2f(newX2, newY2), Color::Blue)
-            };
-
+    bool trigger = false;
     while (window.isOpen()) {
+        window.clear();
         Event event;
-        while (window.pollEvent(event)) {
+        if (window.pollEvent(event)) {
             if (event.type == Event::Closed)
                 window.close();
+            if (event.type == Event::KeyPressed)
+                trigger = !trigger;
         }
+        drawPolygon(&window, vertices, n);
 
-        window.draw(line, 2, Lines);
-        window.draw(newLine, 2, Lines);
-        window.draw(point, 1, Points);
+
+        if (trigger) {
+            line[0] = temp1[0];
+            line[1] = temp1[1];
+        } else {
+            line[0] = temp2[0];
+            line[1] = temp2[1];
+        }
+        drawline(&window, line[0], line[1]);
         window.display();
     }
     return 0;
