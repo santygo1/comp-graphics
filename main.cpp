@@ -1,21 +1,14 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <cstdlib>
 #include <cmath>
-#include <vector>
-
 
 using namespace sf;
 using namespace std;
 
-
 const double PI = 3.141592653589793;
-const int LENGTH = 100;
+const int LENGTH = 18;
 
-
-// Function to draw a line in SFML
-void drawline(RenderWindow *window, pair<double, double> p0, pair<double, double> p1)
-{
+void drawline(RenderWindow *window, pair<int, int> p0, pair<int, int> p1) {
     Vertex line[] =
             {
                     Vertex(Vector2f(p0.first, p0.second), Color::Black),
@@ -24,67 +17,72 @@ void drawline(RenderWindow *window, pair<double, double> p0, pair<double, double
     window->draw(line, 2, Lines);
 }
 
-
-// Function to draw a polygon, given vertices
-void drawPolygon(RenderWindow *window, pair<double, double> vertices[], int n)
-{
+void drawCube(RenderWindow *window, pair<int, int> vertices[], int n) {
     for (int i = 0; i < n - 1; i++)
         drawline(window, vertices[i], vertices[i + 1]);
-    drawline(window, vertices[0], vertices[n - 1]);
 }
 
 
-
-int main()
-{
+int main() {
     int widthWindow = 600;
     int heightWindow = 600;
-    RenderWindow window(VideoMode(widthWindow, heightWindow), "Lab 4");
+    RenderWindow window(VideoMode(widthWindow, heightWindow), "Lab 6");
 
-    // center of coordinate
-    int x0 = widthWindow / 2;
-    int y0 = heightWindow / 2;
+    int edgeCubeLength = 0;
+    int angle = 0;
+    do {
+        cout << "Cube edge length: ";
+        cin >> edgeCubeLength;
+    } while (edgeCubeLength <= 0);
 
-    double r = rand() % 200 + 100;  // r = [100, 200]
-    double angle = rand() % 5 + 3;  // angle = [3, 5]
+    cout << "Angle: ";
+    cin >> angle;
+    int angle90 = angle + 90;
+    int angle180 = angle + 180;
+    int angle270 = angle + 270;
 
-    // translate the polar initial coordinates into Cartesian coordinates
-    double startX = x0 + r * cos(PI * angle / 180);
-    double startY = heightWindow - (y0 + r * sin(PI * angle / 180));
+    int x0 = (int) ((edgeCubeLength * sin(angle * PI / 180)) + widthWindow / 2);
+    int y0 = (int) ((edgeCubeLength * cos(angle * PI / 180)) + heightWindow / 2);
+    int x1 = (int) ((edgeCubeLength * sin(angle90 * PI / 180)) + widthWindow / 2);
+    int y1 = (int) ((edgeCubeLength * cos(angle90 * PI / 180)) + heightWindow / 2);
+    int x2 = (int) ((edgeCubeLength * sin(angle180 * PI / 180)) + widthWindow / 2);
+    int y2 = (int) ((edgeCubeLength * cos(angle180 * PI / 180)) + heightWindow / 2);
+    int x3 = (int) ((edgeCubeLength * sin(angle270 * PI / 180)) + widthWindow / 2);
+    int y3 = (int) ((edgeCubeLength * cos(angle270 * PI / 180)) + heightWindow / 2);
 
-    double x = startX;
-    double y = startY;
+    pair<int, int> cube[LENGTH];
+    cube[0] = make_pair(x0 - edgeCubeLength / 2, y0);
+    cube[1] = make_pair(x1 - edgeCubeLength / 2, y1);
+    cube[2] = make_pair(x1 - edgeCubeLength / 2, y1);
+    cube[3] = make_pair(x2 - edgeCubeLength / 2, y2);
+    cube[4] = make_pair(x2 - edgeCubeLength / 2, y2);
+    cube[5] = make_pair(x3 - edgeCubeLength / 2, y3);
+    cube[6] = make_pair(x0 - edgeCubeLength / 2, y0);
 
-    pair<double, double> polygon[LENGTH];
-    for (auto & i : polygon)
-    {
-        double newR = r + rand() % 20;
-        angle = angle + rand() % 5 + 3;
+    cube[7] = make_pair(x0 + edgeCubeLength / 2, y0);
+    cube[8] = make_pair(x1 + edgeCubeLength / 2, y1);
+    cube[9] = make_pair(x2 + edgeCubeLength / 2, y2);
+    cube[10] = make_pair(x3 + edgeCubeLength / 2, y3);
+    cube[11] = make_pair(x0 + edgeCubeLength / 2, y0);
 
-        double newX = x0 + newR * cos(PI * angle / 180);
-        double newY = heightWindow - (y0 + newR * sin(PI * angle / 180));
+    cube[12] = make_pair(x3 + edgeCubeLength / 2, y3);
+    cube[13] = make_pair(x3 - edgeCubeLength / 2, y3);
+    cube[14] = make_pair(x2 - edgeCubeLength / 2, y2);
+    cube[15] = make_pair(x2 + edgeCubeLength / 2, y2);
+    cube[16] = make_pair(x1 + edgeCubeLength / 2, y1);
+    cube[17] = make_pair(x1 - edgeCubeLength / 2, y1);
 
-        i = make_pair(newX, newY);
-
-        x = newX;
-        y = newY;
-    }
-
-    while (window.isOpen())
-    {
-        Event event;
-        while (window.pollEvent(event))
-        {
+    while (window.isOpen()) {
+        Event event{};
+        while (window.pollEvent(event)) {
             if (event.type == Event::Closed)
                 window.close();
         }
         window.clear(Color::White);
-
-        // draw polygon
-        drawPolygon(&window, polygon, LENGTH);
-
+        drawCube(&window, cube, LENGTH);
         window.display();
     }
 
     return 0;
 }
+
