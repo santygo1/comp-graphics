@@ -1,68 +1,90 @@
 #include <SFML/Graphics.hpp>
-#include <cmath>
 #include <iostream>
+#include <cstdlib>
+#include <cmath>
+#include <vector>
 
-using namespace std;
+
 using namespace sf;
+using namespace std;
 
-void drawPythagoreanTree(RenderTarget &, float, int);
 
-int main() {
-    const float L = 150;
-    int N = 1;
+const double PI = 3.141592653589793;
+const int LENGTH = 100;
 
-    cout << "Number of shapes: ";
-    cin >> N;
 
-    while (N <= 0) {
-        cout << "The number of shapes must be more than 0" << endl;
-        cout << "Number of shapes: ";
-        cin >> N;
+// Function to draw a line in SFML
+void drawline(RenderWindow *window, pair<double, double> p0, pair<double, double> p1)
+{
+    Vertex line[] =
+            {
+                    Vertex(Vector2f(p0.first, p0.second), Color::Black),
+                    Vertex(Vector2f(p1.first, p1.second), Color::Black)
+            };
+    window->draw(line, 2, Lines);
+}
+
+
+// Function to draw a polygon, given vertices
+void drawPolygon(RenderWindow *window, pair<double, double> vertices[], int n)
+{
+    for (int i = 0; i < n - 1; i++)
+        drawline(window, vertices[i], vertices[i + 1]);
+    drawline(window, vertices[0], vertices[n - 1]);
+}
+
+
+
+int main()
+{
+    int widthWindow = 600;
+    int heightWindow = 600;
+    RenderWindow window(VideoMode(widthWindow, heightWindow), "Lab 4");
+
+    // center of coordinate
+    int x0 = widthWindow / 2;
+    int y0 = heightWindow / 2;
+
+    double r = rand() % 200 + 100;  // r = [100, 200]
+    double angle = rand() % 5 + 3;  // angle = [3, 5]
+
+    // translate the polar initial coordinates into Cartesian coordinates
+    double startX = x0 + r * cos(PI * angle / 180);
+    double startY = heightWindow - (y0 + r * sin(PI * angle / 180));
+
+    double x = startX;
+    double y = startY;
+
+    pair<double, double> polygon[LENGTH];
+    for (auto & i : polygon)
+    {
+        double newR = r + rand() % 20;
+        angle = angle + rand() % 5 + 3;
+
+        double newX = x0 + newR * cos(PI * angle / 180);
+        double newY = heightWindow - (y0 + newR * sin(PI * angle / 180));
+
+        i = make_pair(newX, newY);
+
+        x = newX;
+        y = newY;
     }
 
-    const auto width = static_cast<unsigned>(6 * L);
-    const auto height = static_cast<unsigned>(4 * L);
-    RenderWindow window{{width, height}, "Lab 3"};
-    while (window.isOpen()) {
-        for (Event event; window.pollEvent(event);) {
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
             if (event.type == Event::Closed)
                 window.close();
         }
-        window.clear();
-        drawPythagoreanTree(window, L, N);
+        window.clear(Color::White);
+
+        // draw polygon
+        drawPolygon(&window, polygon, LENGTH);
+
         window.display();
     }
-}
 
-void drawPythagoreanTree(RenderTarget &target, const int N,
-                         const RectangleShape &parent) {
-    static const float halfSqrt2 = sqrt(2.f) / 2;
-
-    if (N < 1) return;
-    target.draw(parent);
-    auto const &sz = parent.getSize();
-    auto const &tf = parent.getTransform();
-
-    auto childL = parent;
-    childL.setSize(sz * halfSqrt2);
-    childL.setOrigin(0, childL.getSize().y);
-    childL.setPosition(tf.transformPoint({0, 0}));
-    childL.rotate(-45);
-    drawPythagoreanTree(target, N - 1, childL);
-
-    auto childR = parent;
-    childR.setSize(sz * halfSqrt2);
-    childR.setOrigin(childR.getSize());
-    childR.setPosition(tf.transformPoint({sz.x, 0}));
-    childR.rotate(45);
-    drawPythagoreanTree(target, N - 1, childR);
-}
-
-void drawPythagoreanTree(RenderTarget &target, const float L, const int N) {
-    RectangleShape rect{{L, L}};
-    rect.setOrigin(rect.getSize() / 2.f);
-    rect.setPosition(target.getSize().x / 2.f,
-                     target.getSize().y - L / 2.f);
-    rect.setFillColor(Color::White);
-    drawPythagoreanTree(target, N, rect);
+    return 0;
 }
